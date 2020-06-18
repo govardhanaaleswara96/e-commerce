@@ -82,16 +82,26 @@ const getOrderProducts = async (req, res) => {
  * get ordered products count based on the date
  */
 const getOrderProductsBasedOnDate = async (req, res) => {
+  const date = new Date(req.body.date);
+  const startDate = new Date(req.body.date);
+  startDate.setDate(startDate.getDate() - 1);
+  const endDate = new Date(req.body.date);
+  endDate.setDate(endDate.getDate() + 1);
   try {
-    const productCounts = orderModel
+    const productCounts = await orderModel
       .find({
         createdAt: {
-          $gte: new Date(2020, 6, 17).setHours(00, 00, 00),
-          $lt: new Date(2020, 6, 18).setHours(23, 59, 59),
+          $gt: new Date(startDate),
+          $lt: new Date(endDate),
         },
       })
-      .sort({ createdAt: "asc" });
-    console.log(productCounts);
+      .sort({ createdAt: "asc" })
+      .lean();
+    res.status(404).json({
+      data: {
+        "product counts": productCounts.length,
+      },
+    });
   } catch (error) {
     res.status(404).json({
       message: "products fetch failed",
